@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_brevo_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_brevo';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class BrevoResult {
+  /// Creates a result.
   const BrevoResult({
     this.product,
     this.messageId,
@@ -51,8 +52,13 @@ class BrevoResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class BrevoCallResult<T> {
+  /// Creates a call result.
   const BrevoCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final BrevoResult? result;
 }
@@ -83,62 +89,62 @@ Future<T> tracedBrevo<T>({
   final span = _tracer().startSpan(
     'brevo $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.product != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'brevo.product',
           r.result!.product!,
         ));
       }
       if (r.result!.messageId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'brevo.message.id',
           r.result!.messageId!,
         ));
       }
       if (r.result!.recipientCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'brevo.recipient_count',
           r.result!.recipientCount!,
         ));
       }
       if (r.result!.templateId != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'brevo.template.id',
           r.result!.templateId!,
         ));
       }
       if (r.result!.smsType != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'brevo.sms.type',
           r.result!.smsType!,
         ));
       }
       if (r.result!.campaignType != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'brevo.campaign.type',
           r.result!.campaignType!,
         ));
       }
       if (r.result!.tier != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'brevo.tier',
           r.result!.tier!,
         ));
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'brevo.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -149,13 +155,13 @@ Future<T> tracedBrevo<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
